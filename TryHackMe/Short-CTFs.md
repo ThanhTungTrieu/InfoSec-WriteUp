@@ -4,7 +4,7 @@
 - Link: https://tryhackme.com/room/owasptop10
 - Cho trước 1 trang web 
 
-    <iframe src="https://drive.google.com/file/d/1opL40MC6VXSkpeHjo-0Vsb3QrI03uBju/preview" width="640" height="480" allow="autoplay"></iframe>
+    ![webapp image](https://drive.google.com/file/d/1opL40MC6VXSkpeHjo-0Vsb3QrI03uBju/view?usp=sharing)
 
 - Yêu cầu: Khai thác lỗ hổng RCE để thực hiện Execute Shell "wc -c /etc/passwd".
 - Biết trước ứng dụng sử dụng PHP, MySQL, Boostrap.
@@ -26,21 +26,21 @@
 - Nhìn qua trang web `jewel.uploadvulns.thm` thì thấy trang chủ có chức năng upload file (cụ thể là image).
 - Nhìn qua 1 lượt page source, thấy link đến 1 file static javascript đáng ngờ có tên `upload.js`. Check source file `upload.js`, nhận thấy đây là file chứa phần file upload filter (client-side) => Có thể bypass bằng burpsuite.
 - Dùng gobuster để enum: `gobuster dir -u jewel.uploadvulns.thm -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -t 250 --no-error` cho kết quả: 
-	-- /modules              (Status: 301) [Size: 181] [--> /modules/]
-/admin                (Status: 200) [Size: 1238]
-/assets               (Status: 301) [Size: 179] [--> /assets/]
-/Content              (Status: 301) [Size: 181] [--> /Content/]
-/Assets               (Status: 301) [Size: 179] [--> /Assets/]
-/Modules              (Status: 301) [Size: 181] [--> /Modules/]
-/Admin                (Status: 200) [Size: 1238]
+    * /modules              (Status: 301) [Size: 181] [--> /modules/]
+    * /admin                (Status: 200) [Size: 1238]
+    * /assets               (Status: 301) [Size: 179] [--> /assets/]
+    * /Content              (Status: 301) [Size: 181] [--> /Content/]
+    * /Assets               (Status: 301) [Size: 179] [--> /Assets/]
+    * /Modules              (Status: 301) [Size: 181] [--> /Modules/]
+    * /Admin                (Status: 200) [Size: 1238]
  - Nhận thấy /admin và /Admin có thể là một (có cùng size) và có status 200 => truy cập được. 
  - Truy cập /admin, ok đây là nơi để thực thi file (từ thư mục /modules).
  - Dùng gobuster để enum /modules nhưng không cho kết quả gì khả quan.
  - Dùng gobuster để enum /content với file được cho sẵn từ đề bài: `gobuster dir -u jewel.uploadvulns.thm/content -w ~/Downloads/UploadVulnsWordlist.txt -x jpg -t 250 --no-error` cho kết quả: 
-	 -- /ABH.jpg              (Status: 200) [Size: 705442]
-/LKQ.jpg              (Status: 200) [Size: 444808]
-/SAD.jpg              (Status: 200) [Size: 247159]
-/UAD.jpg              (Status: 200) [Size: 342033]
+    * /ABH.jpg              (Status: 200) [Size: 705442]
+    * /LKQ.jpg              (Status: 200) [Size: 444808]
+    * /SAD.jpg              (Status: 200) [Size: 247159]
+    * /UAD.jpg              (Status: 200) [Size: 342033]
 - Truy cập thử các file kia trên url, nhận thấy đây là các ảnh được chiếu làm background trang chủ.
 - Trang chủ có ghi: `Have you got a nice image of a gem or a jewel?  
 Upload it here and we'll add it to the slides!`. Dự đoán ảnh upload sẽ được đưa vào thư mục /content và được sửa tên thành định dạng ***.jpg.
@@ -52,12 +52,12 @@ Upload it here and we'll add it to the slides!`. Dự đoán ảnh upload sẽ �
 - Sửa tên file payload thành định dạng jpg (hoặc dữ nguyên tên file, chỉnh sửa request bằng burpsuite), sau đó upload, nhận được thông báo thành công => đã bypass được server-side filter => payload đã nằm trên target. Việc bây giờ cần làm là tìm cách chạy payload đó trên server.
 - Ta đã biết file sau khi được upload sẽ nằm trong thư mục content với định dạng ***.jpg => Dùng gobuster enum thư mục /content thêm lần nữa để tìm ra tên đúng của file vừa upload.
 - Dùng gobuster enum /content cho kết quả:
-	--  /ABH.jpg              (Status: 200) [Size: 705442]
-/LIP.jpg              (Status: 200) [Size: 383]
-/LKQ.jpg              (Status: 200) [Size: 444808]
-/SAD.jpg              (Status: 200) [Size: 247159]
-/UAD.jpg              (Status: 200) [Size: 342033]
-/ZBE.jpg			  (Status: 200) [Size: 250178]
+    * /ABH.jpg              (Status: 200) [Size: 705442]
+    * /LIP.jpg              (Status: 200) [Size: 383]
+    * /LKQ.jpg              (Status: 200) [Size: 444808]
+    * /SAD.jpg              (Status: 200) [Size: 247159]
+    * /UAD.jpg              (Status: 200) [Size: 342033]
+    * /ZBE.jpg		    (Status: 200) [Size: 250178]
 - So với lần enum /content đầu tiên, ta có thêm 2 file khác: LIP.jpg và ZBE.jpg. Dự đoán: 1 trong 2 file này là payload js ta tải lên.
 - Mở listener ở local sẵn: `nc -lnvp 4444`
 - Truy cập http://jewel.uploadvulns.thm/content/ZBE.jpg cho kết quả là ảnh jpg thật mà ta upload trước đó.
