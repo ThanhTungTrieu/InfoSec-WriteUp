@@ -4,7 +4,7 @@
 - Link: https://tryhackme.com/room/owasptop10
 - Cho trước 1 trang web 
 
-    ![webapp image](https://drive.google.com/file/d/1opL40MC6VXSkpeHjo-0Vsb3QrI03uBju/view?usp=sharing)
+    Ảnh: https://drive.google.com/file/d/1opL40MC6VXSkpeHjo-0Vsb3QrI03uBju/view
 
 - Yêu cầu: Khai thác lỗ hổng RCE để thực hiện Execute Shell "wc -c /etc/passwd".
 - Biết trước ứng dụng sử dụng PHP, MySQL, Boostrap.
