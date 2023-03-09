@@ -1,6 +1,7 @@
 ﻿Thử thách này yêu cầu exploit machine, lấy user flag và root flag - tương ứng với gain access và privilege escalation.
 
 Port scan:
+
 ![enter image description here](https://imgur.com/rAZzDAI.png)
 
 Service ajp có lỗ hổng File Read/Inclusion. Exploit bằng Metasploit đọc file /WEB-INF/web.xml:
