@@ -100,6 +100,14 @@ Nội dung trong này là credentials của user spring. Lấy password bằng c
 
 Vì user spring không có quyền write vào /usr/local/scripts nên không thể tạo file chứa payload trong đó. Ở đây mình sẽ tạo 1 file chứa payload trong /tmp/t và lợi dụng dấu wildcard (dấu *) trong đường dẫn trên để gọi đến file chứa payload bằng lỗ hổng path traversal.
 
+Payload liệt kê /root:
+
+`require("child_process").exec("ls -la /root > /tmp/t/lsout.txt");`
+
+![enter image description here](https://imgur.com/b7g2J2u.png)
+
+Nội dung file lsout.txt chứa output của `ls -la /root`. Đọc nội dung file lsout.txt nhận thấy trong /root chỉ có 1 file là root.txt.
+
 Payload đọc root flag: 
 
 `process.stdout.write(require("fs").readFileSync("/root/root.txt"))` 
@@ -113,7 +121,13 @@ Phân tích kỹ hơn về câu lệnh
 echo '5DymSe0rbLE491QsCLgm' | sudo -S /usr/bin/node /usr/local/scripts/../../../tmp/t/read.js
 ```
 
-Đầu tiên, vì user spring có thể sudo /usr/bin/node /usr/local/scripts/*.js , truyền vào dấu wildcard ../../../tmp/t/read.js vẫn được tính là hợp lệ. Tiếp theo, vì ở đây đang là non-interactive shell nên nếu dùng sudo như bình thường thì sẽ không nhập được password khi sudo. Giải quyết vấn đề này bằng cách sử dụng echo \<password\> và pipe sang sudo -S để sudo đọc password từ stdin (thứ mà vừa pipe từ echo sang). 
+và 
+
+```
+echo '5DymSe0rbLE491QsCLgm' | sudo -S /usr/bin/node /usr/local/scripts/../../../tmp/t/shell.js
+```
+
+Đầu tiên, vì user spring có thể sudo /usr/bin/node /usr/local/scripts/*.js , truyền vào dấu wildcard ../../../tmp/t/read.js vẫn được tính là hợp lệ (tương tự với shell.js). Tiếp theo, vì ở đây đang là non-interactive shell nên nếu dùng sudo như bình thường thì sẽ không nhập được password khi sudo. Giải quyết vấn đề này bằng cách sử dụng echo \<password\> và pipe sang sudo -S để sudo đọc password từ stdin (thứ mà vừa pipe từ echo sang). 
 
 Root flag ở đây là:
 
