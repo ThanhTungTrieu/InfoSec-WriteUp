@@ -22,6 +22,7 @@ Truy cập vào /gallary -> redirect đến /gallery/login.php
 
 Ta thấy response trả về cả câu SQL được thực thi -> Easy SQLi.
 Truyền vào username là admin và password là 1') OR ('1'='1
+
 Trong Burp suite cần URL encoding cho ký tự space, còn đăng nhập trực tiếp ở login form thì không cần.
 
 ![enter image description here](https://imgur.com/chsEwyQ.png)
