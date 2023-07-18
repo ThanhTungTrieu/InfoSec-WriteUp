@@ -21,7 +21,7 @@ Truy cập vào /gallary -> redirect đến /gallery/login.php
 ![enter image description here](https://imgur.com/JJDZfAW.png)
 
 Ta thấy response trả về cả câu SQL được thực thi -> Easy SQLi.
-Truyền vào username là admin và password là 1') OR ('1'='1
+Truyền vào username là `admin` và password là `1') OR ('1'='1`
 
 Trong Burp suite cần URL encoding cho ký tự space, còn đăng nhập trực tiếp ở login form thì không cần.
 
@@ -58,7 +58,7 @@ File /opt/rootkit.sh
 
 ![enter image description here](https://imgur.com/boWDNOJ.png)
 
-Khi thực thi file /opt/rootkit.sh, chương trình thực hiện đọc input từ bàn phím  vào biến ans, sau đó đến switch case dựa trên giá trị biến ans vừa nhập vào. Ý tưởng để privesc ở đây là nhập vào "read" để chương trình nhảy xuống case "read", thực thi `/bin/nano /root/report.txt` bằng quyền root, ta sẽ lợi dụng nano để leo quyền. 
+Khi thực thi file /opt/rootkit.sh, chương trình thực hiện đọc input từ bàn phím  vào biến ans, sau đó đến switch case dựa trên giá trị biến ans vừa nhập vào. Ý tưởng để privesc ở đây là nhập vào `read` để chương trình nhảy xuống case `read`, thực thi `/bin/nano /root/report.txt` bằng quyền root, ta sẽ lợi dụng nano để leo quyền. 
 Nhưng vì terminal hiện tại nếu mở nano sẽ bị báo lỗi `Error opening terminal: unknown`. Để giải quyết vấn đề này, chạy `export TERM="xterm"`.
 
 Chạy `sudo /bin/bash /opt/rootkit.sh`, nhập read và enter.
@@ -75,11 +75,11 @@ Lấy root flag:
 ![enter image description here](https://imgur.com/Xyz7esr.png)
 
 Box này còn yêu cầu tìm password hash của user admin (web). File /root/mysql_history có chứa thông tin truy cập mysql. Dựa vào đó để truy cập database là lấy ra password hash cần tìm.
-Nội dung file /root/.mysql_history:
+Nội dung file `/root/.mysql_history`:
 
 ![enter image description here](https://imgur.com/2B2hmNT.png)
 
-Truy cập mysql bằng gallery_user:passw0rd321
+Truy cập mysql bằng `gallery_user:passw0rd321`
 
 ![enter image description here](https://imgur.com/iFP8oSJ.png)
 
